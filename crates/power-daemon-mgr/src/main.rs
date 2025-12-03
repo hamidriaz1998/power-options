@@ -47,6 +47,8 @@ enum OpMode {
     },
     /// Lists the profile names
     ListProfiles,
+    /// Gets the current profile override if any
+    GetProfileOverride,
     /// Creates a temporary override for a certain profile
     SetProfileOverride {
         profile_name: String,
@@ -119,6 +121,18 @@ async fn main() {
                     .expect("Could not obtain config")
                     .profiles
             );
+        }
+        OpMode::GetProfileOverride => {
+            let profile_override = ControlClient::new()
+                .await
+                .expect("Could not create control client")
+                .get_profile_override()
+                .await
+                .expect("Could not get profile override");
+            match profile_override {
+                Some(profile) => println!("{}", profile),
+                None => println!("No profile override is currently set"),
+            }
         }
         OpMode::SetProfileOverride { profile_name } => ControlClient::new()
             .await
