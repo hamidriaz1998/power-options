@@ -44,6 +44,9 @@ jobs:
       - name: build frontend-gtk (release)
         run: cargo build --release -p frontend-gtk
 
+      - name: build power-applet (release)
+        run: cargo build --release -p power-applet
+
       - name: upload power-daemon-mgr binary
         uses: distropack/distropack-action@v1.0
         with:
@@ -64,6 +67,17 @@ jobs:
           files: |
             {
               "power-options-gtk": "target/release/frontend-gtk"
+            }
+
+      - name: upload power-applet binary
+        uses: distropack/distropack-action@v1.0
+        with:
+          api-token: ${{ secrets.DISTROPACK_API_TOKEN }}
+          package-id: 019afefc-abbc-7ce1-8466-53d0f351c347
+          version: ${{ env.VERSION }}
+          files: |
+            {
+              "power-options-tray": "target/release/power-applet"
             }
 
   publish_aur_packages:
