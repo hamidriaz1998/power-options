@@ -5,10 +5,6 @@ on:
     tags:
       - "*"
 
-env:
-  # remove leading v if present in tag name
-  VERSION: ${{ github.ref_name && startsWith(github.ref_name, 'v') && github.ref_name != 'v' && github.ref_name[1:] || github.ref_name }}
-
 jobs:
   check_and_format:
     name: cargo check and clippy
@@ -47,12 +43,22 @@ jobs:
       - name: build power-applet (release)
         run: cargo build --release -p power-applet
 
+      - name: determine version
+        id: version
+        run: |
+          ref="${GITHUB_REF_NAME}"
+          if [[ "${ref}" == v* ]]; then
+            echo "version=${ref#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${ref}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: upload power-daemon-mgr binary
         uses: distropack/distropack-action@v1.0
         with:
           api-token: ${{ secrets.DISTROPACK_API_TOKEN }}
           package-id: f6fee267-5e8e-4fe1-b4b1-f724736d598d
-          version: ${{ env.VERSION }}
+          version: ${{ steps.version.outputs.version }}
           files: |
             {
               "power-daemon-mgr": "target/release/power-daemon-mgr"
@@ -63,7 +69,7 @@ jobs:
         with:
           api-token: ${{ secrets.DISTROPACK_API_TOKEN }}
           package-id: 9668ac33-5166-4952-a364-24d3dbc5abeb
-          version: ${{ env.VERSION }}
+          version: ${{ steps.version.outputs.version }}
           files: |
             {
               "power-options-gtk": "target/release/frontend-gtk"
@@ -74,7 +80,7 @@ jobs:
         with:
           api-token: ${{ secrets.DISTROPACK_API_TOKEN }}
           package-id: 019afefc-abbc-7ce1-8466-53d0f351c347
-          version: ${{ env.VERSION }}
+          version: ${{ steps.version.outputs.version }}
           files: |
             {
               "power-options-tray": "target/release/power-applet"
